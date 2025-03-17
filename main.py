@@ -184,17 +184,40 @@ class Maze:
             if self.playerY-1 >= 0:
                 neighbors.append((self.playerX,self.playerY-1))
         print(neighbors)
-        options = []
-        for neighbor in neighbors:
-            if self.maze[neighbor[0]][neighbor[1]] == 0:
-                print("open")
-                options.append(neighbor)
-        if len(options) > 1:
-            stack.append((self.playerX,self.playerY))
+        while self.check_win() != True:
+            options = []
+            for neighbor in neighbors:
+                if self.maze[neighbor[0]][neighbor[1]] == 0:
+                    print("open")
+                    options.append(neighbor)
+            if len(options) > 1:
+                print(">1")
+                stack.append((self.playerX,self.playerY))
+                self.playerX,self.playerY = options[0][0],options[0][1]
+                
+            if len(options) == 1:
+                print("1")
+                self.playerX,self.playerY = options[0][0],options[0][1]
             
-        if len(options) == 1:
-            self.playerX,self.playerY = options[0][0],options[0][1]
-        self.draw_maze(self.maze)
+            if len(options) == 0:
+                print("0")
+                self.playerX,self.playerY = stack[-1][0],stack[-1][1]
+
+            if 0 <= self.playerX < self.rows - 1 and 0 <= self.playerY < self.cols - 1:
+                print("new neighbor if")
+                neighbors = [(self.playerX-1,self.playerY),(self.playerX+1,self.playerY),(self.playerX,self.playerY+1),(self.playerX,self.playerY-1)]
+            else:
+                print("else")
+                neighbors = []
+                if self.playerX-1 >= 0:
+                    neighbors.append((self.playerX-1,self.playerY))
+                if self.playerX+1 < self.rows - 1:
+                    neighbors.append((self.playerX+1,self.playerY))
+                if self.playerY+1 < self.cols - 1:
+                    neighbors.append((self.playerX,self.playerY+1))
+                if self.playerY-1 >= 0:
+                    neighbors.append((self.playerX,self.playerY-1))
+            self.draw_maze(self.maze)
 
 running = True
 labirynt = Maze(ROWS, COLS,CELL_SIZE)
@@ -205,7 +228,7 @@ labirynt.generate_maze()
 # keyboard.on_press_key("right", lambda x: labirynt.set_positions("right"))
 
 clock = pygame.time.Clock()
-
+labirynt.dfs_solver()
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -214,9 +237,8 @@ while running:
     if labirynt.check_win():
         labirynt.end_message()
         break
-    else:
+    # else:
         # labirynt.right_hand_solver()
-        labirynt.dfs_solver()
 
     pygame.display.update()
     clock.tick(60)
