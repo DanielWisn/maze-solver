@@ -212,6 +212,41 @@ class Maze:
                 if self.playerY+1 < self.cols - 1:
                     neighbors.append((self.playerX,self.playerY+1))
             self.draw_maze(self.maze)
+    
+    def bfs_solver(self):
+        queue = []
+        neighbors = []
+        if 0 <= self.playerX < self.rows - 1 and 0 <= self.playerY < self.cols - 1:
+            neighbors = [(self.playerX,self.playerY-1),(self.playerX-1,self.playerY),(self.playerX+1,self.playerY),(self.playerX,self.playerY+1)]
+        else:
+            if self.playerY-1 >= 0:
+                neighbors.append((self.playerX,self.playerY-1))
+            if self.playerX-1 >= 0:
+                neighbors.append((self.playerX-1,self.playerY))
+            if self.playerX+1 < self.rows - 1:
+                neighbors.append((self.playerX+1,self.playerY))
+            if self.playerY+1 < self.cols - 1:
+                neighbors.append((self.playerX,self.playerY+1))
+        while self.check_win() != True:
+            for neighbor in neighbors:
+                if self.maze[neighbor[0]][neighbor[1]] == 0:
+                    queue.append(neighbor)
+                    self.maze[neighbor[0]][neighbor[1]] = 4
+                if self.maze[neighbor[0]][neighbor[1]] == 2:
+                    self.playerX,self.playerY = neighbor[0],neighbor[1]
+            
+            neighbors = []
+            for element in queue:
+                if element[1]-1 >= 0:
+                    neighbors.append((element[0],element[1]-1))
+                if element[0]-1 >= 0:
+                    neighbors.append((element[0]-1,element[1]))
+                if element[0]+1 < self.rows - 1:
+                    neighbors.append((element[0]+1,element[1]))
+                if element[1]+1 < self.cols - 1:
+                    neighbors.append((element[0],element[1]+1))
+            queue.pop(0)
+            self.draw_maze(self.maze)
 
 running = True
 labirynt = Maze(ROWS, COLS,CELL_SIZE)
@@ -221,7 +256,8 @@ labirynt.generate_maze()
 # keyboard.on_press_key("down", lambda x: labirynt.set_positions("down"))
 # keyboard.on_press_key("right", lambda x: labirynt.set_positions("right"))
 
-labirynt.dfs_solver()
+# labirynt.dfs_solver()
+labirynt.bfs_solver()
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -242,6 +278,8 @@ pygame.quit()
     #     labirynt.move_player()
 
 #Right hand 41,41 best time: 3.192 Worst time: 8.84 AVG < 6
-#Right hand 75,75 best time:  Worst time: 52.464 AVG < 
+#Right hand 75,75 best time: 41.145  Worst time: 52.464 AVG < 
 #DFS 41,41 best time: 0.946 Worst time: 2.532 AVG < 2
-#DFS 75,75 best time: 8.505 Worst time: 19.278  AVG 
+#DFS 75,75 best time: 5.135 Worst time: 19.599  AVG < 10
+#BFS 41,41 best time:  Worst time: AVG <
+#BFS 75,75 best time:  Worst time: AVG <
