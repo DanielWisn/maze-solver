@@ -215,38 +215,54 @@ class Maze:
     
     def bfs_solver(self):
         queue = []
+        parents = {}
+        shortest_path = []
         neighbors = []
         if 0 <= self.playerX < self.rows - 1 and 0 <= self.playerY < self.cols - 1:
             neighbors = [(self.playerX,self.playerY-1),(self.playerX-1,self.playerY),(self.playerX+1,self.playerY),(self.playerX,self.playerY+1)]
         else:
             if self.playerY-1 >= 0:
-                neighbors.append((self.playerX,self.playerY-1))
+                neighbors.append((self.playerX,self.playerY-1,(self.playerX,self.playerY)))
             if self.playerX-1 >= 0:
-                neighbors.append((self.playerX-1,self.playerY))
+                neighbors.append((self.playerX-1,self.playerY,(self.playerX,self.playerY)))
             if self.playerX+1 < self.rows - 1:
-                neighbors.append((self.playerX+1,self.playerY))
+                neighbors.append((self.playerX+1,self.playerY,(self.playerX,self.playerY)))
             if self.playerY+1 < self.cols - 1:
-                neighbors.append((self.playerX,self.playerY+1))
+                neighbors.append((self.playerX,self.playerY+1,(self.playerX,self.playerY)))
         while self.check_win() != True:
             for neighbor in neighbors:
                 if self.maze[neighbor[0]][neighbor[1]] == 0:
                     queue.append(neighbor)
+                    parents[(neighbor[0],neighbor[1])] = neighbor[2]
                     self.maze[neighbor[0]][neighbor[1]] = 4
                 if self.maze[neighbor[0]][neighbor[1]] == 2:
+                    parents[(neighbor[0],neighbor[1])] = neighbor[2]
                     self.playerX,self.playerY = neighbor[0],neighbor[1]
             
             neighbors = []
             for element in queue:
                 if element[1]-1 >= 0:
-                    neighbors.append((element[0],element[1]-1))
+                    neighbors.append((element[0],element[1]-1,(element[0],element[1])))
                 if element[0]-1 >= 0:
-                    neighbors.append((element[0]-1,element[1]))
+                    neighbors.append((element[0]-1,element[1],(element[0],element[1])))
                 if element[0]+1 < self.rows - 1:
-                    neighbors.append((element[0]+1,element[1]))
+                    neighbors.append((element[0]+1,element[1],(element[0],element[1])))
                 if element[1]+1 < self.cols - 1:
-                    neighbors.append((element[0],element[1]+1))
+                    neighbors.append((element[0],element[1]+1,(element[0],element[1])))
             queue.pop(0)
             self.draw_maze(self.maze)
+        
+        shortest_path_created = False
+        next_cell = parents[(self.playerX,self.playerY)]
+        while not shortest_path_created:
+            self.maze[next_cell[0]][next_cell[1]] = 2
+            self.draw_maze(self.maze)
+            try:
+                next_cell = parents[(next_cell[0],next_cell[1])]
+            except:
+                print("exit")
+                break
+            
 
 running = True
 labirynt = Maze(ROWS, COLS,CELL_SIZE)
@@ -263,9 +279,9 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    if labirynt.check_win():
-        labirynt.end_message()
-        break
+    # if labirynt.check_win():
+    #     labirynt.end_message()
+    #     break
     # else:
     #     labirynt.right_hand_solver()
 
@@ -281,5 +297,5 @@ pygame.quit()
 #Right hand 75,75 best time: 41.145  Worst time: 52.464 AVG < 
 #DFS 41,41 best time: 0.946 Worst time: 2.532 AVG < 2
 #DFS 75,75 best time: 5.135 Worst time: 19.599  AVG < 10
-#BFS 41,41 best time:  Worst time: AVG <
-#BFS 75,75 best time:  Worst time: AVG <
+#BFS 41,41 best time: 0.098 Worst time: 0.41 AVG < 0.2
+#BFS 75,75 best time: 0.898 Worst time: 3.036 AVG < 1.5
