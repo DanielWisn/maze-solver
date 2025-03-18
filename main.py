@@ -4,7 +4,7 @@ import keyboard
 from typing import Literal
 import time
 
-ROWS, COLS = 61,61
+ROWS, COLS = 75,75
 CELL_SIZE = 10
 WIDTH,HEIGHT = ROWS * CELL_SIZE,COLS * CELL_SIZE
 
@@ -173,50 +173,44 @@ class Maze:
         stack = []
         neighbors = []
         if 0 <= self.playerX < self.rows - 1 and 0 <= self.playerY < self.cols - 1:
-            neighbors = [(self.playerX-1,self.playerY),(self.playerX+1,self.playerY),(self.playerX,self.playerY+1),(self.playerX,self.playerY-1)]
+            neighbors = [(self.playerX,self.playerY-1),(self.playerX-1,self.playerY),(self.playerX+1,self.playerY),(self.playerX,self.playerY+1)]
         else:
+            if self.playerY-1 >= 0:
+                neighbors.append((self.playerX,self.playerY-1))
             if self.playerX-1 >= 0:
                 neighbors.append((self.playerX-1,self.playerY))
             if self.playerX+1 < self.rows - 1:
                 neighbors.append((self.playerX+1,self.playerY))
             if self.playerY+1 < self.cols - 1:
                 neighbors.append((self.playerX,self.playerY+1))
-            if self.playerY-1 >= 0:
-                neighbors.append((self.playerX,self.playerY-1))
-        print(neighbors)
         while self.check_win() != True:
             options = []
             for neighbor in neighbors:
-                if self.maze[neighbor[0]][neighbor[1]] == 0:
-                    print("open")
+                if self.maze[neighbor[0]][neighbor[1]] == 0 or self.maze[neighbor[0]][neighbor[1]] == 2:
                     options.append(neighbor)
             if len(options) > 1:
-                print(">1")
                 stack.append((self.playerX,self.playerY))
                 self.playerX,self.playerY = options[0][0],options[0][1]
                 
             if len(options) == 1:
-                print("1")
                 self.playerX,self.playerY = options[0][0],options[0][1]
             
             if len(options) == 0:
-                print("0")
                 self.playerX,self.playerY = stack[-1][0],stack[-1][1]
+                stack.pop(-1)
 
             if 0 <= self.playerX < self.rows - 1 and 0 <= self.playerY < self.cols - 1:
-                print("new neighbor if")
-                neighbors = [(self.playerX-1,self.playerY),(self.playerX+1,self.playerY),(self.playerX,self.playerY+1),(self.playerX,self.playerY-1)]
+                neighbors = [(self.playerX,self.playerY-1),(self.playerX-1,self.playerY),(self.playerX+1,self.playerY),(self.playerX,self.playerY+1)]
             else:
-                print("else")
                 neighbors = []
+                if self.playerY-1 >= 0:
+                    neighbors.append((self.playerX,self.playerY-1))
                 if self.playerX-1 >= 0:
                     neighbors.append((self.playerX-1,self.playerY))
                 if self.playerX+1 < self.rows - 1:
                     neighbors.append((self.playerX+1,self.playerY))
                 if self.playerY+1 < self.cols - 1:
                     neighbors.append((self.playerX,self.playerY+1))
-                if self.playerY-1 >= 0:
-                    neighbors.append((self.playerX,self.playerY-1))
             self.draw_maze(self.maze)
 
 running = True
@@ -227,7 +221,6 @@ labirynt.generate_maze()
 # keyboard.on_press_key("down", lambda x: labirynt.set_positions("down"))
 # keyboard.on_press_key("right", lambda x: labirynt.set_positions("right"))
 
-clock = pygame.time.Clock()
 labirynt.dfs_solver()
 while running:
     for event in pygame.event.get():
@@ -238,13 +231,17 @@ while running:
         labirynt.end_message()
         break
     # else:
-        # labirynt.right_hand_solver()
+    #     labirynt.right_hand_solver()
 
     pygame.display.update()
-    clock.tick(60)
 
 pygame.quit()
 
 
     # if labirynt.positions != "stay":
     #     labirynt.move_player()
+
+#Right hand 41,41 best time: 3.192 Worst time: 8.84 AVG < 6
+#Right hand 75,75 best time:  Worst time: 52.464 AVG < 
+#DFS 41,41 best time: 0.946 Worst time: 2.532 AVG < 2
+#DFS 75,75 best time: 8.505 Worst time: 19.278  AVG 
