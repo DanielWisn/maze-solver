@@ -4,7 +4,7 @@ import keyboard
 from typing import Literal
 import time
 
-ROWS, COLS = 75,75
+ROWS, COLS = 41,41
 CELL_SIZE = 10
 WIDTH,HEIGHT = ROWS * CELL_SIZE,COLS * CELL_SIZE
 
@@ -68,7 +68,12 @@ class Maze:
                 if 1 <= new_row < self.rows-1 and 1 <= new_col < self.cols-1 and self.maze[new_row][new_col] == 1:
                     self.maze[row + dx][col + dy] = 0
                     backtracking(self,new_row,new_col)
-
+        # i = 0
+        # while i<20:
+        #     i += 1
+        #     random_x = random.randrange(0,self.rows,2)
+        #     random_y = random.randrange(0,self.cols,2)
+        #     self.maze[random_x][random_y] = 0
         backtracking(self,start_row,start_col)
         self.maze[self.playerX][self.playerY] = 3
         self.maze[self.exit_x][self.exit_y] = 2
@@ -216,7 +221,6 @@ class Maze:
     def bfs_solver(self):
         queue = []
         parents = {}
-        shortest_path = []
         neighbors = []
         if 0 <= self.playerX < self.rows - 1 and 0 <= self.playerY < self.cols - 1:
             neighbors = [(self.playerX,self.playerY-1),(self.playerX-1,self.playerY),(self.playerX+1,self.playerY),(self.playerX,self.playerY+1)]
@@ -260,8 +264,40 @@ class Maze:
             try:
                 next_cell = parents[(next_cell[0],next_cell[1])]
             except:
-                print("exit")
                 break
+        
+    def dead_end_solver(self):
+            to_check = {}
+            dead_ends = []
+            to_check[(self.playerX,self.playerY)] = [(self.playerX,self.playerY-1)]
+            while self.check_win() != True:
+                for cell in to_check:
+                    walls = 0
+                    for neighbor in to_check[cell]:
+                        if self.maze[neighbor[0]][neighbor[1]] == 0:
+                            walls += 1
+                        print(neighbor,"neighbor")
+                        print(to_check[cell],"to_check[cell]")
+                        print(to_check)
+                
+
+                for element in dead_ends:
+                    to_append =[]
+                    if element[1]-1 >= 0:
+                        to_append.append((element[0],element[1]-1))
+                    if element[0]-1 >= 0:
+                        to_append.append((element[0]-1,element[1]))
+                    if element[0]+1 < self.rows - 1:
+                        to_append.append((element[0]+1,element[1]))
+                    if element[1]+1 < self.cols - 1:
+                        to_append.append((element[0],element[1]+1))
+                    to_check[element] = to_append
+
+                    
+                    
+
+            
+
             
 
 running = True
@@ -273,7 +309,8 @@ labirynt.generate_maze()
 # keyboard.on_press_key("right", lambda x: labirynt.set_positions("right"))
 
 # labirynt.dfs_solver()
-labirynt.bfs_solver()
+# labirynt.bfs_solver()
+labirynt.dead_end_solver()
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
