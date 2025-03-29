@@ -267,21 +267,22 @@ class Maze:
                 break
         
     def dead_end_solver(self):
-            to_check = {}
-            dead_ends = []
-            to_check[(self.playerX,self.playerY)] = [(self.playerX,self.playerY-1)]
-            while self.check_win() != True:
-                for cell in to_check:
+            _____ = {}
+            _____ = [(self.playerX,self.playerY-1)]
+            path_created = False
+            while path_created != True:
+                for cell in ____:
                     walls = 0
-                    for neighbor in to_check[cell]:
-                        if self.maze[neighbor[0]][neighbor[1]] == 0:
+                    for neighbor in cell:
+                        if self.maze[neighbor[0]][neighbor[1]] == 1:
                             walls += 1
-                        print(neighbor,"neighbor")
-                        print(to_check[cell],"to_check[cell]")
-                        print(to_check)
-                
-
-                for element in dead_ends:
+                        if self.maze[neighbor[0]][neighbor[1]] == 0:
+                            ____.append(neighbor) # dodać do szukania ścian jeżeli jest następna opcja
+                    if walls == 3:
+                        self.maze[cell[0]][cell[1]] = 1
+                        del ____[cell] #usunac z szukania
+                        
+                for element in ______:
                     to_append =[]
                     if element[1]-1 >= 0:
                         to_append.append((element[0],element[1]-1))
@@ -291,14 +292,7 @@ class Maze:
                         to_append.append((element[0]+1,element[1]))
                     if element[1]+1 < self.cols - 1:
                         to_append.append((element[0],element[1]+1))
-                    to_check[element] = to_append
-
-                    
-                    
-
-            
-
-            
+                    ______ = to_append
 
 running = True
 labirynt = Maze(ROWS, COLS,CELL_SIZE)
