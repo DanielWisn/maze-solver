@@ -27,6 +27,8 @@ class Maze:
         self.positions: Literal["up", "down", "left", "right","stay"] = "stay"
         self.start_time = 0
         self.end_time = 0
+        self.finished = False
+
     def set_positions(self, pos):
         self.positions = pos
     
@@ -116,8 +118,9 @@ class Maze:
                 self.playerX = self.playerX
         self.draw_maze(self.maze)
     def check_win(self):
-        if self.playerX == self.exit_x and self.playerY == self.exit_y:
+        if self.playerX == self.exit_x and self.playerY == self.exit_y or self.finished == True:
             self.end_time = time.time()
+            self.end_message()
             return True
 
     def end_message(self):
@@ -125,54 +128,55 @@ class Maze:
         print(f"Time:{round(solve_time,3)}")
 
     def right_hand_solver(self):
-        next_move = ""
-        current_rigth = ""
-        current_forward = ""
-        match self.current_direction:
-            case "left":
-                current_rigth = self.maze[self.playerX-1][self.playerY]
-                current_forward = self.maze[self.playerX][self.playerY-1]
-                if current_rigth != 1:
-                    next_move = "up"
-                    self.set_direction("up")
-                elif current_forward != 1:
-                    next_move = "left"
-                else:
-                    self.set_direction("down")
-            case "down":
-                current_rigth = self.maze[self.playerX][self.playerY-1]
-                current_forward = self.maze[self.playerX+1][self.playerY]
-                if current_rigth != 1:
-                    next_move = "left"
-                    self.set_direction("left")
-                elif current_forward != 1:
-                    next_move = "down"
-                else:
-                    self.set_direction("right")
-            case "right":
-                current_rigth = self.maze[self.playerX+1][self.playerY]
-                current_forward = self.maze[self.playerX][self.playerY+1]
-                if current_rigth != 1:
-                    next_move = "down"
-                    self.set_direction("down")
-                elif current_forward != 1:
-                    next_move = "right"
-                else:
-                    self.set_direction("up")
-            case "up":
-                current_rigth = self.maze[self.playerX][self.playerY+1]
-                current_forward = self.maze[self.playerX-1][self.playerY]
-                if current_rigth != 1:
-                    next_move = "right"
-                    self.set_direction("right")
-                elif current_forward != 1:
-                    next_move = "up"
-                else:
-                    self.set_direction("left")
+        while self.check_win() != True:
+            next_move = ""
+            current_rigth = ""
+            current_forward = ""
+            match self.current_direction:
+                case "left":
+                    current_rigth = self.maze[self.playerX-1][self.playerY]
+                    current_forward = self.maze[self.playerX][self.playerY-1]
+                    if current_rigth != 1:
+                        next_move = "up"
+                        self.set_direction("up")
+                    elif current_forward != 1:
+                        next_move = "left"
+                    else:
+                        self.set_direction("down")
+                case "down":
+                    current_rigth = self.maze[self.playerX][self.playerY-1]
+                    current_forward = self.maze[self.playerX+1][self.playerY]
+                    if current_rigth != 1:
+                        next_move = "left"
+                        self.set_direction("left")
+                    elif current_forward != 1:
+                        next_move = "down"
+                    else:
+                        self.set_direction("right")
+                case "right":
+                    current_rigth = self.maze[self.playerX+1][self.playerY]
+                    current_forward = self.maze[self.playerX][self.playerY+1]
+                    if current_rigth != 1:
+                        next_move = "down"
+                        self.set_direction("down")
+                    elif current_forward != 1:
+                        next_move = "right"
+                    else:
+                        self.set_direction("up")
+                case "up":
+                    current_rigth = self.maze[self.playerX][self.playerY+1]
+                    current_forward = self.maze[self.playerX-1][self.playerY]
+                    if current_rigth != 1:
+                        next_move = "right"
+                        self.set_direction("right")
+                    elif current_forward != 1:
+                        next_move = "up"
+                    else:
+                        self.set_direction("left")
 
-        self.set_positions(next_move)
-        self.move_player()
-        self.draw_maze(self.maze)
+            self.set_positions(next_move)
+            self.move_player()
+            self.draw_maze(self.maze)
 
     def dfs_solver(self):
         stack = []
@@ -184,9 +188,9 @@ class Maze:
                 neighbors.append((self.playerX,self.playerY-1))
             if self.playerX-1 >= 0:
                 neighbors.append((self.playerX-1,self.playerY))
-            if self.playerX+1 < self.rows - 1:
+            if self.playerX+1 <= self.rows - 1:
                 neighbors.append((self.playerX+1,self.playerY))
-            if self.playerY+1 < self.cols - 1:
+            if self.playerY+1 <= self.cols - 1:
                 neighbors.append((self.playerX,self.playerY+1))
         while self.check_win() != True:
             options = []
@@ -212,9 +216,9 @@ class Maze:
                     neighbors.append((self.playerX,self.playerY-1))
                 if self.playerX-1 >= 0:
                     neighbors.append((self.playerX-1,self.playerY))
-                if self.playerX+1 < self.rows - 1:
+                if self.playerX+1 <= self.rows - 1:
                     neighbors.append((self.playerX+1,self.playerY))
-                if self.playerY+1 < self.cols - 1:
+                if self.playerY+1 <= self.cols - 1:
                     neighbors.append((self.playerX,self.playerY+1))
             self.draw_maze(self.maze)
     
@@ -229,9 +233,9 @@ class Maze:
                 neighbors.append((self.playerX,self.playerY-1,(self.playerX,self.playerY)))
             if self.playerX-1 >= 0:
                 neighbors.append((self.playerX-1,self.playerY,(self.playerX,self.playerY)))
-            if self.playerX+1 < self.rows - 1:
+            if self.playerX+1 <= self.rows - 1:
                 neighbors.append((self.playerX+1,self.playerY,(self.playerX,self.playerY)))
-            if self.playerY+1 < self.cols - 1:
+            if self.playerY+1 <= self.cols - 1:
                 neighbors.append((self.playerX,self.playerY+1,(self.playerX,self.playerY)))
         while self.check_win() != True:
             for neighbor in neighbors:
@@ -249,9 +253,9 @@ class Maze:
                     neighbors.append((element[0],element[1]-1,(element[0],element[1])))
                 if element[0]-1 >= 0:
                     neighbors.append((element[0]-1,element[1],(element[0],element[1])))
-                if element[0]+1 < self.rows - 1:
+                if element[0]+1 <= self.rows - 1:
                     neighbors.append((element[0]+1,element[1],(element[0],element[1])))
-                if element[1]+1 < self.cols - 1:
+                if element[1]+1 <= self.cols - 1:
                     neighbors.append((element[0],element[1]+1,(element[0],element[1])))
             queue.pop(0)
             self.draw_maze(self.maze)
@@ -267,62 +271,61 @@ class Maze:
                 break
         
     def dead_end_solver(self):
-            _____ = {}
-            _____ = [(self.playerX,self.playerY-1)]
-            path_created = False
-            while path_created != True:
-                for cell in ____:
-                    walls = 0
-                    for neighbor in cell:
-                        if self.maze[neighbor[0]][neighbor[1]] == 1:
-                            walls += 1
-                        if self.maze[neighbor[0]][neighbor[1]] == 0:
-                            ____.append(neighbor) # dodać do szukania ścian jeżeli jest następna opcja
-                    if walls == 3:
-                        self.maze[cell[0]][cell[1]] = 1
-                        del ____[cell] #usunac z szukania
-                        
-                for element in ______:
-                    to_append =[]
-                    if element[1]-1 >= 0:
-                        to_append.append((element[0],element[1]-1))
-                    if element[0]-1 >= 0:
-                        to_append.append((element[0]-1,element[1]))
-                    if element[0]+1 < self.rows - 1:
-                        to_append.append((element[0]+1,element[1]))
-                    if element[1]+1 < self.cols - 1:
-                        to_append.append((element[0],element[1]+1))
-                    ______ = to_append
+        free_paths = []
+        cells_to_check = {}
+        path_created = False
+        for i in range(0,self.rows):
+            for j in range(0,self.cols):
+                if self.maze[i][j] == 0:
+                    free_paths.append((i,j))
 
+        while path_created != True:
+            for element in free_paths:
+                to_append = []
+                if element[1]-1 >= 0:
+                    to_append.append((element[0],element[1]-1))
+                if element[0]-1 >= 0:
+                    to_append.append((element[0]-1,element[1]))
+                if element[0]+1 <= self.rows - 1:
+                    to_append.append((element[0]+1,element[1]))
+                if element[1]+1 <= self.cols - 1:
+                    to_append.append((element[0],element[1]+1))
+                    cells_to_check[element] = to_append
+            to_delete = []
+            for cell in cells_to_check:
+                walls = 0
+                for neighbor in cells_to_check[cell]:
+                    if self.maze[neighbor[0]][neighbor[1]] == 1:
+                        walls += 1
+
+                if walls == 3:
+                    self.maze[cell[0]][cell[1]] = 1
+                    to_delete.append((cell[0],cell[1]))
+                    self.draw_maze(self.maze)
+
+            if not to_delete:
+                path_created = True
+                self.finished = True
+                self.check_win()
+
+            for i in to_delete:
+                free_paths.remove(i)
+                cells_to_check.pop(i)
+        
 running = True
 labirynt = Maze(ROWS, COLS,CELL_SIZE)
 labirynt.generate_maze()
-# keyboard.on_press_key("left", lambda x: labirynt.set_positions("left"))
-# keyboard.on_press_key("up", lambda x: labirynt.set_positions("up"))
-# keyboard.on_press_key("down", lambda x: labirynt.set_positions("down"))
-# keyboard.on_press_key("right", lambda x: labirynt.set_positions("right"))
 
 # labirynt.dfs_solver()
 # labirynt.bfs_solver()
 labirynt.dead_end_solver()
+# labirynt.right_hand_solver()
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
-    # if labirynt.check_win():
-    #     labirynt.end_message()
-    #     break
-    # else:
-    #     labirynt.right_hand_solver()
-
-    pygame.display.update()
-
 pygame.quit()
-
-
-    # if labirynt.positions != "stay":
-    #     labirynt.move_player()
 
 #Right hand 41,41 best time: 3.192 Worst time: 8.84 AVG < 6
 #Right hand 75,75 best time: 41.145  Worst time: 52.464 AVG < 
@@ -330,3 +333,5 @@ pygame.quit()
 #DFS 75,75 best time: 5.135 Worst time: 19.599  AVG < 10
 #BFS 41,41 best time: 0.098 Worst time: 0.41 AVG < 0.2
 #BFS 75,75 best time: 0.898 Worst time: 3.036 AVG < 1.5
+#DEAD 41,41 AVG < 0.55
+#DEAD 75,75 AVG < 6

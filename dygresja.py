@@ -1,11 +1,6 @@
-import random
-
-rows = 5
-cols = 5
-
-maze = [[1 for _ in range(cols)] for _ in range(rows)]
-
-start_row, start_col = (random.randrange(1, rows, 2), random.randrange(1, cols, 2))
-maze[4][4] = 0
-
-print(maze)
+lista = [(0,1),(1,0),(1,1),(0,0)]
+slownik = {(0,0):[(2,1),(2,3)],(0,1):[(2,2),(2,4)]}
+lista.remove((0,1))
+slownik.pop((0,0))
+print(lista)
+print(slownik)
