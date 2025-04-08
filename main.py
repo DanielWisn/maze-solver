@@ -4,7 +4,7 @@ import keyboard
 from typing import Literal
 import time
 
-ROWS, COLS = 41,41
+ROWS, COLS = 45,45
 CELL_SIZE = 10
 WIDTH,HEIGHT = ROWS * CELL_SIZE,COLS * CELL_SIZE
 
@@ -13,6 +13,7 @@ BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0,255,0)
 RED = (255,0,0)
+PINK = (252,15,192)
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -28,6 +29,7 @@ class Maze:
         self.start_time = 0
         self.end_time = 0
         self.finished = False
+        self.dont = False
 
     def set_positions(self, pos):
         self.positions = pos
@@ -36,7 +38,8 @@ class Maze:
         self.current_direction = dir
 
     def draw_maze(self,maze:list):
-        maze[self.playerX][self.playerY] = 3
+        if self.dont != True:
+            maze[self.playerX][self.playerY] = 3
         screen.fill(BLACK)
         for row in range(self.rows):
             for col in range(self.cols):
@@ -50,9 +53,12 @@ class Maze:
                     color = BLUE
                 if maze[row][col] == 4:
                     color = RED
+                if maze[row][col] == 5:
+                    color = PINK
                 pygame.draw.rect(screen, color, (col * self.cell_size, row * self.cell_size, self.cell_size, self.cell_size))
         pygame.display.update()
-        maze[self.playerX][self.playerY] = 4
+        if self.dont != True:
+             maze[self.playerX][self.playerY] = 4
 
     def generate_maze(self):
         self.maze = [[1 for _ in range(self.cols)] for _ in range(self.rows)]
@@ -306,20 +312,61 @@ class Maze:
             if not to_delete:
                 path_created = True
                 self.finished = True
+                for i in free_paths:
+                    self.maze[i[0]][i[1]] = 2
+                self.draw_maze(self.maze)
                 self.check_win()
+
 
             for i in to_delete:
                 free_paths.remove(i)
                 cells_to_check.pop(i)
         
+    def tremaux_solver(self):
+        self.dont = True
+        neighbors = [(self.playerX,self.playerY-1)]
+        self.playerX,self.playerY = self.playerX,self.playerY -1
+        while self.check_win() != True:
+            options = []
+            path_found = False
+            for neighbor in neighbors:
+                if self.maze[neighbor[0]][neighbor[1]] == 0 or self.maze[neighbor[0]][neighbor[1]] == 2:
+                    self.maze[neighbor[0]][neighbor[1]] = 5
+                    self.playerX,self.playerY = neighbor[0],neighbor[1]
+                    self.draw_maze(self.maze)
+                    path_found = True
+                    break
+                if self.maze[neighbor[0]][neighbor[1]] == 5:
+                    options.append(neighbor)
+                    self.draw_maze(self.maze)
+
+            if len(options) != 0 and path_found == False:
+                self.playerX,self.playerY = options[0][0], options[0][1]
+                self.maze[options[0][0]][options[0][1]] = 4
+                self.draw_maze(self.maze)
+
+            if 0 <= self.playerX < self.rows - 1 and 0 <= self.playerY < self.cols - 1:
+                neighbors = [(self.playerX,self.playerY-1),(self.playerX-1,self.playerY),(self.playerX+1,self.playerY),(self.playerX,self.playerY+1)]
+            else:
+                neighbors = []
+                if self.playerY-1 >= 0:
+                    neighbors.append((self.playerX,self.playerY-1))
+                if self.playerX-1 >= 0:
+                    neighbors.append((self.playerX-1,self.playerY))
+                if self.playerX+1 <= self.rows - 1:
+                    neighbors.append((self.playerX+1,self.playerY))
+                if self.playerY+1 <= self.cols - 1:
+                    neighbors.append((self.playerX,self.playerY+1))
+
 running = True
 labirynt = Maze(ROWS, COLS,CELL_SIZE)
 labirynt.generate_maze()
 
 # labirynt.dfs_solver()
 # labirynt.bfs_solver()
-labirynt.dead_end_solver()
+# labirynt.dead_end_solver()
 # labirynt.right_hand_solver()
+labirynt.tremaux_solver()
 
 while running:
     for event in pygame.event.get():
