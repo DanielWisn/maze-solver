@@ -244,6 +244,7 @@ class Maze:
             if self.playerY+1 <= self.cols - 1:
                 neighbors.append((self.playerX,self.playerY+1,(self.playerX,self.playerY)))
         while self.check_win() != True:
+            pygame.time.delay(100)
             for neighbor in neighbors:
                 if self.maze[neighbor[0]][neighbor[1]] == 0:
                     queue.append(neighbor)
@@ -326,24 +327,47 @@ class Maze:
         self.dont = True
         neighbors = [(self.playerX,self.playerY-1)]
         self.playerX,self.playerY = self.playerX,self.playerY -1
+        stack = []
         while self.check_win() != True:
-            options = []
-            path_found = False
+            pygame.time.delay(250)
+            walls = 0
+            next_move = ()
             for neighbor in neighbors:
+                if self.maze[neighbor[0]][neighbor[1]] == 1:
+                    walls += 1
+                    continue
                 if self.maze[neighbor[0]][neighbor[1]] == 0 or self.maze[neighbor[0]][neighbor[1]] == 2:
-                    self.maze[neighbor[0]][neighbor[1]] = 5
-                    self.playerX,self.playerY = neighbor[0],neighbor[1]
+                    next_move = (neighbor[0],neighbor[1],1)
                     self.draw_maze(self.maze)
-                    path_found = True
                     break
                 if self.maze[neighbor[0]][neighbor[1]] == 5:
-                    options.append(neighbor)
+                    next_move = (neighbor[0],neighbor[1],2)
                     self.draw_maze(self.maze)
+                    break
+            
+            if walls == 0 or walls == 1:
+                stack.append((self.playerX,self.playerY))
+                print("dodane do stack")
 
-            if len(options) != 0 and path_found == False:
-                self.playerX,self.playerY = options[0][0], options[0][1]
-                self.maze[options[0][0]][options[0][1]] = 4
+            if walls == 3:
+                self.maze[self.playerX][self.playerY] = 4
+                self.playerX,self.playerY = stack[-1][0],stack[-1][1]
+                del stack[-1]
+                print("dead end")
                 self.draw_maze(self.maze)
+
+            # if next_move == False:
+            #     last_decision_point = stack.pop()
+            #     print("cofam")
+            #     self.playerX,self.playerY = last_decision_point[0],last_decision_point[1]
+
+            if next_move[2] == 1:
+                self.playerX,self.playerY = next_move[0],next_move[1]
+                self.maze[next_move[0]][next_move[1]] = 5
+
+            if next_move[2] == 2:
+                self.playerX,self.playerY = next_move[0],next_move[1]
+                self.maze[next_move[0]][next_move[1]] = 4
 
             if 0 <= self.playerX < self.rows - 1 and 0 <= self.playerY < self.cols - 1:
                 neighbors = [(self.playerX,self.playerY-1),(self.playerX-1,self.playerY),(self.playerX+1,self.playerY),(self.playerX,self.playerY+1)]
@@ -362,10 +386,10 @@ running = True
 labirynt = Maze(ROWS, COLS,CELL_SIZE)
 labirynt.generate_maze()
 
+# labirynt.right_hand_solver()
 # labirynt.dfs_solver()
 # labirynt.bfs_solver()
 # labirynt.dead_end_solver()
-# labirynt.right_hand_solver()
 labirynt.tremaux_solver()
 
 while running:
