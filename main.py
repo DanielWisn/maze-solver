@@ -16,25 +16,19 @@ PINK = (252,15,192)
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+# random.seed(4)
 
 class Maze:
-    def __init__(self, rows:int,cols:int,cell_size:int):
+    def __init__(self, rows:int,cols:int,cell_size:int) -> None:
         self.rows = rows
         self.cols = cols
         self.cell_size = cell_size
         self.directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-        self.positions: Literal["up", "down", "left", "right","stay"] = "stay"
         self.start_time = 0
         self.end_time = 0
         self.finished = False
 
-    def set_positions(self, pos):
-        self.positions = pos
-    
-    def set_direction(self,dir):
-        self.current_direction = dir
-
-    def draw_maze(self,playerX:int,playerY:int,dont:bool=False):
+    def draw_maze(self,playerX:int,playerY:int,dont:bool=False) -> None:
         if dont != True:
             self.matrix[playerX][playerY] = 3
         screen.fill(BLACK)
@@ -57,27 +51,52 @@ class Maze:
         if dont != True:
              self.matrix[playerX][playerY] = 4
 
-    def generate_maze(self):
+    def generate_maze(self,multiple_paths:bool = False):
         self.matrix = [[1 for _ in range(self.cols)] for _ in range(self.rows)]
         start_row, start_col = (random.randrange(1, self.rows-1, 2), random.randrange(1, self.cols-1, 2))
         self.startX, self.startY = random.randrange(1, self.rows, 2), self.cols-1
         self.exitX, self.exitY = random.randrange(1, self.rows, 2), 0
-    
         def backtracking(self,row:int,col:int):
-            self.matrix[row][col] = 0
-            self.draw_maze(self.startX,self.startY,False)
-            
-            random.shuffle(self.directions)
-            for dx, dy in self.directions:
-                new_row, new_col = row + dx * 2, col + dy * 2
-                if 1 <= new_row < self.rows-1 and 1 <= new_col < self.cols-1 and self.matrix[new_row][new_col] == 1:
-                    self.matrix[row + dx][col + dy] = 0
-                    backtracking(self,new_row,new_col)
+                self.matrix[row][col] = 0
+                self.draw_maze(self.startX,self.startY,False)
+                
+                random.shuffle(self.directions)
+                for dx, dy in self.directions:
+                    new_row, new_col = row + dx * 2, col + dy * 2
+                    if 1 <= new_row < self.rows-1 and 1 <= new_col < self.cols-1 and self.matrix[new_row][new_col] == 1:
+                        self.matrix[row + dx][col + dy] = 0
+                        backtracking(self,new_row,new_col)
         
         backtracking(self,start_row,start_col)
+        if multiple_paths == True:
+            removed_walls = 0
+            while removed_walls < 30:
+                random_x = random.randrange(2,self.rows-1,2)
+                random_y = random.randrange(2,self.cols-1,2)
+                neighbor_walls = [(random_x-1,random_y),(random_x+1,random_y),(random_x,random_y-1),(random_x,random_y+1)]
+                walls_x = 0
+                walls_y = 0
+                if self.matrix[random_x][random_y] == 1:
+                    if self.matrix[neighbor_walls[0][0]][neighbor_walls[0][1]] == 1:
+                        walls_x += 1
+                    if self.matrix[neighbor_walls[1][0]][neighbor_walls[1][1]] == 1:
+                        walls_x += 1
+                    if self.matrix[neighbor_walls[2][0]][neighbor_walls[2][1]] == 1:
+                        walls_y += 1
+                    if self.matrix[neighbor_walls[3][0]][neighbor_walls[3][1]] == 1:
+                        walls_y += 1
+                    if walls_x == 2 and walls_y == 2:
+                        continue
+                    elif walls_x == 1 or walls_y == 1:
+                        continue
+                    else:
+                        self.matrix[random_x][random_y] = 0
+                        removed_walls += 1
+                        self.draw_maze(self.startX,self.startY)
+          
         self.matrix[self.startX][self.startY] = 3
         self.matrix[self.exitX][self.exitY] = 2
-        self.draw_maze(self.startX,self.startY,False)
+        self.draw_maze(self.startX,self.startY)
         self.start_time = time.time()
 
     def check_win(self,playerX:int,playerY:int):
@@ -297,14 +316,14 @@ class Solver:
 
 running = True
 labirynt = Maze(ROWS, COLS,CELL_SIZE)
-labirynt.generate_maze()
+labirynt.generate_maze(True)
 solver = Solver(labirynt)
 
 # solver.right_hand_solver()
 # solver.dfs_solver()
 # solver.bfs_solver()
 # solver.dead_end_solver()
-solver.tremaux_solver()
+# solver.tremaux_solver()
 
 
 while running:
