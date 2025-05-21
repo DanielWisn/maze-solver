@@ -74,20 +74,15 @@ class Maze:
                 random_x = random.randrange(2,self.rows-1,2)
                 random_y = random.randrange(2,self.cols-1,2)
                 neighbor_walls = [(random_x-1,random_y),(random_x+1,random_y),(random_x,random_y-1),(random_x,random_y+1)]
-                walls_x = 0
-                walls_y = 0
+                walls_x, walls_y = 0,0
                 if self.matrix[random_x][random_y] == 1:
-                    if self.matrix[neighbor_walls[0][0]][neighbor_walls[0][1]] == 1:
-                        walls_x += 1
-                    if self.matrix[neighbor_walls[1][0]][neighbor_walls[1][1]] == 1:
-                        walls_x += 1
-                    if self.matrix[neighbor_walls[2][0]][neighbor_walls[2][1]] == 1:
-                        walls_y += 1
-                    if self.matrix[neighbor_walls[3][0]][neighbor_walls[3][1]] == 1:
-                        walls_y += 1
+                    if self.matrix[neighbor_walls[0][0]][neighbor_walls[0][1]] == 1 and self.matrix[neighbor_walls[1][0]][neighbor_walls[1][1]] == 1:
+                        walls_x += 2
+                    if self.matrix[neighbor_walls[2][0]][neighbor_walls[2][1]] == 1 and self.matrix[neighbor_walls[3][0]][neighbor_walls[3][1]] == 1:
+                        walls_y += 2
                     if walls_x == 2 and walls_y == 2:
                         continue
-                    elif walls_x == 1 or walls_y == 1:
+                    elif walls_x == 0 and walls_y == 0:
                         continue
                     else:
                         self.matrix[random_x][random_y] = 0
@@ -203,10 +198,7 @@ class Solver:
             
             neighbors = []
             for element in queue:
-                neighbors.append((element[0],element[1]-1,(element[0],element[1])))
-                neighbors.append((element[0]-1,element[1],(element[0],element[1])))
-                neighbors.append((element[0]+1,element[1],(element[0],element[1])))
-                neighbors.append((element[0],element[1]+1,(element[0],element[1])))
+                neighbors.extend([(element[0],element[1]-1,(element[0],element[1])),(element[0]-1,element[1],(element[0],element[1])),(element[0]+1,element[1],(element[0],element[1])),(element[0],element[1]+1,(element[0],element[1]))])
 
             queue.pop(0)
             self.maze.draw_maze(self.playerX,self.playerY)
@@ -233,10 +225,7 @@ class Solver:
         while path_created != True:
             for element in free_paths:
                 to_append = []
-                to_append.append((element[0],element[1]-1))
-                to_append.append((element[0]-1,element[1]))
-                to_append.append((element[0]+1,element[1]))
-                to_append.append((element[0],element[1]+1))
+                to_append.extend([(element[0],element[1]-1),(element[0]-1,element[1]),(element[0]+1,element[1]),(element[0],element[1]+1)])
                 cells_to_check[element] = to_append
             to_delete = []
             for cell in cells_to_check:
@@ -287,18 +276,14 @@ class Solver:
 
             if free_paths >= 3:
                 stack.append((self.playerX,self.playerY))
-
+            
             if next_move == () and decision_made == False:
                 self.maze.matrix[self.playerX][self.playerY] = 4
                 self.playerX,self.playerY = stack[-1][0],stack[-1][1]
                 print("cofam")
                 del stack[-1]
                 decision_made = True
-            
-            if next_move[2] == 0 and decision_made == False:
-                self.maze.matrix[self.playerX][self.playerY] = 5
-                self.playerX,self.playerY = next_move[0],next_move[1]
-                decision_made = True
+            print(next_move)
 
             if next_move[2] == 1 and decision_made == False:
                 self.maze.matrix[self.playerX][self.playerY] = 5
@@ -316,12 +301,12 @@ class Solver:
 
 running = True
 labirynt = Maze(ROWS, COLS,CELL_SIZE)
-labirynt.generate_maze(True)
+labirynt.generate_maze()
 solver = Solver(labirynt)
 
 # solver.right_hand_solver()
 # solver.dfs_solver()
-# solver.bfs_solver()
+solver.bfs_solver()
 # solver.dead_end_solver()
 # solver.tremaux_solver()
 
