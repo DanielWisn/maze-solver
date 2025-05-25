@@ -74,15 +74,20 @@ class Maze:
                 random_x = random.randrange(2,self.rows-1,2)
                 random_y = random.randrange(2,self.cols-1,2)
                 neighbor_walls = [(random_x-1,random_y),(random_x+1,random_y),(random_x,random_y-1),(random_x,random_y+1)]
-                walls_x, walls_y = 0,0
+                walls_x = 0
+                walls_y = 0
                 if self.matrix[random_x][random_y] == 1:
-                    if self.matrix[neighbor_walls[0][0]][neighbor_walls[0][1]] == 1 and self.matrix[neighbor_walls[1][0]][neighbor_walls[1][1]] == 1:
-                        walls_x += 2
-                    if self.matrix[neighbor_walls[2][0]][neighbor_walls[2][1]] == 1 and self.matrix[neighbor_walls[3][0]][neighbor_walls[3][1]] == 1:
-                        walls_y += 2
+                    if self.matrix[neighbor_walls[0][0]][neighbor_walls[0][1]] == 1:
+                        walls_x += 1
+                    if self.matrix[neighbor_walls[1][0]][neighbor_walls[1][1]] == 1:
+                        walls_x += 1
+                    if self.matrix[neighbor_walls[2][0]][neighbor_walls[2][1]] == 1:
+                        walls_y += 1
+                    if self.matrix[neighbor_walls[3][0]][neighbor_walls[3][1]] == 1:
+                        walls_y += 1
                     if walls_x == 2 and walls_y == 2:
                         continue
-                    elif walls_x == 0 and walls_y == 0:
+                    elif walls_x == 1 or walls_y == 1:
                         continue
                     else:
                         self.matrix[random_x][random_y] = 0
@@ -162,12 +167,14 @@ class Solver:
 
     def dfs_solver(self) -> None:
         stack = []
+        parents = {}
         neighbors = [(self.playerX,self.playerY-1)]
         while self.maze.check_win(self.playerX,self.playerY) != True:
             options = []
             for neighbor in neighbors:
                 if self.maze.matrix[neighbor[0]][neighbor[1]] == 0 or self.maze.matrix[neighbor[0]][neighbor[1]] == 2:
                     options.append(neighbor)
+                    parents[neighbor] = (self.playerX,self.playerY)
             if len(options) > 1:
                 stack.append((self.playerX,self.playerY))
                 self.playerX,self.playerY = options[0][0],options[0][1]
@@ -181,7 +188,16 @@ class Solver:
 
             neighbors = [(self.playerX,self.playerY-1),(self.playerX-1,self.playerY),(self.playerX+1,self.playerY),(self.playerX,self.playerY+1)]
             self.maze.draw_maze(self.playerX,self.playerY)
-    
+
+        next_cell = parents[(self.playerX,self.playerY)]
+        while True:
+            self.maze.matrix[next_cell[0]][next_cell[1]] = 2
+            self.maze.draw_maze(self.playerX,self.playerY)
+            try:
+                next_cell = parents[(next_cell[0],next_cell[1])]
+            except:
+                break
+
     def bfs_solver(self) -> None:
         queue = []
         parents = {}
@@ -408,9 +424,9 @@ solver = Solver(labirynt)
 # solver.right_hand_solver()
 # solver.dfs_solver()
 # solver.bfs_solver()
-# solver.dead_end_solver()
+solver.dead_end_solver()
 # solver.tremaux_solver()
-solver.a_star()
+# solver.a_star()
 
 while running:
     for event in pygame.event.get():
