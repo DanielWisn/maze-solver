@@ -34,40 +34,47 @@ class Maze:
         screen.fill(BLACK)
         for row in range(self.rows):
             for col in range(self.cols):
-                if self.matrix[row][col] == 0:
-                    color = WHITE
-                if self.matrix[row][col] == 1:
-                    color = BLACK
-                if self.matrix[row][col] == 2:
-                    color = GREEN
-                if self.matrix[row][col] == 3:
-                    color = BLUE
-                if self.matrix[row][col] == 4:
-                    color = RED
-                if self.matrix[row][col] == 5:
-                    color = PINK
+                match self.matrix[row][col]:
+                    case 0:
+                        color = WHITE
+                    case 1:
+                        color = BLACK
+                    case 2:
+                        color = GREEN
+                    case 3:
+                        color = BLUE
+                    case 4:
+                        color = RED
+                    case 5:
+                        color = PINK
                 pygame.draw.rect(screen, color, (col * self.cell_size, row * self.cell_size, self.cell_size, self.cell_size))
         pygame.display.update()
         if dont != True:
              self.matrix[playerX][playerY] = 4
 
+
+    #1.Losowy node 2.Zrób ścieżke 3.Sąsiedzi co 2 jeżeli są ściany to robie przejście pomiedzy i tak dla każdego neighbora 
+    #4. jak nie ma już ścian obok neighbora to cofasz do ostatniego miejsca z neighbor 5. Jak nie ma już do czego cofać to koniec
+    #W mojej implementacji zaczyna od losowego miejsca losuje kolejność sąsiadów i dla każdego rusza się do neighbora ustawia na 0
+    #Od tamtego miejsca znowu backtracking rekursywnie i jak się skończy to wraca
     def generate_maze(self,multiple_paths:bool = False):
         self.matrix = [[1 for _ in range(self.cols)] for _ in range(self.rows)]
         start_row, start_col = (random.randrange(1, self.rows-1, 2), random.randrange(1, self.cols-1, 2))
         self.startX, self.startY = random.randrange(1, self.rows, 2), self.cols-1
         self.exitX, self.exitY = random.randrange(1, self.rows, 2), 0
         def backtracking(self,row:int,col:int):
-                self.matrix[row][col] = 0
-                self.draw_maze(self.startX,self.startY,False)
-                
-                random.shuffle(self.directions)
-                for dx, dy in self.directions:
-                    new_row, new_col = row + dx * 2, col + dy * 2
-                    if 1 <= new_row < self.rows-1 and 1 <= new_col < self.cols-1 and self.matrix[new_row][new_col] == 1:
-                        self.matrix[row + dx][col + dy] = 0
-                        backtracking(self,new_row,new_col)
+            self.matrix[row][col] = 0
+            self.draw_maze(self.startX,self.startY,False)
+
+            random.shuffle(self.directions)
+            for dx, dy in self.directions:
+                new_row, new_col = row + dx * 2, col + dy * 2
+                if 1 <= new_row < self.rows-1 and 1 <= new_col < self.cols-1 and self.matrix[new_row][new_col] == 1:
+                    self.matrix[row + dx][col + dy] = 0
+                    backtracking(self,new_row,new_col)
         
         backtracking(self,start_row,start_col)
+        #losuje miejsce musi oś x lub oś y być pusta a reszta pełna by móc usunać ściane
         if multiple_paths == True:
             removed_walls = 0
             while removed_walls < 30:
@@ -117,6 +124,8 @@ class Solver:
         self.playerY = self.maze.startY
         self.current_direction: Literal["up", "down", "left", "right"] = "left"
 
+
+    #prawa strona zawsze i jeżeli obrócisz się do zmienia w która stronę jest prawo i prosto 
     def right_hand_solver(self) -> None:
         while self.maze.check_win(self.playerX,self.playerY) != True:
             current_rigth = ""
@@ -165,6 +174,8 @@ class Solver:
 
             self.maze.draw_maze(self.playerX,self.playerY)
 
+    # Zapisuje miejsce decyzji idzie po koleji i jak dead-end to wraca się do poprzedniego miejsa decyzji
+    # Jak znajdzie wyjście to wraca po rodzicu do startu
     def dfs_solver(self) -> None:
         stack = []
         parents = {}
@@ -175,6 +186,7 @@ class Solver:
                 if self.maze.matrix[neighbor[0]][neighbor[1]] == 0 or self.maze.matrix[neighbor[0]][neighbor[1]] == 2:
                     options.append(neighbor)
                     parents[neighbor] = (self.playerX,self.playerY)
+
             if len(options) > 1:
                 stack.append((self.playerX,self.playerY))
                 self.playerX,self.playerY = options[0][0],options[0][1]
@@ -192,12 +204,14 @@ class Solver:
         next_cell = parents[(self.playerX,self.playerY)]
         while True:
             self.maze.matrix[next_cell[0]][next_cell[1]] = 2
-            self.maze.draw_maze(self.playerX,self.playerY)
             try:
                 next_cell = parents[(next_cell[0],next_cell[1])]
             except:
+                self.maze.draw_maze(self.playerX,self.playerY)
                 break
 
+    # Na każdym punkcje decyzji rozchodzi się i eksploruje każdego neihbora który nie jest ścianą i już go nie eksplorował
+    #  i zapisuje rodziców żeby odtworzyć ścieżke
     def bfs_solver(self) -> None:
         queue = []
         parents = {}
@@ -208,6 +222,7 @@ class Solver:
                     queue.append(neighbor)
                     parents[(neighbor[0],neighbor[1])] = neighbor[2]
                     self.maze.matrix[neighbor[0]][neighbor[1]] = 4
+
                 if self.maze.matrix[neighbor[0]][neighbor[1]] == 2:
                     parents[(neighbor[0],neighbor[1])] = neighbor[2]
                     self.playerX,self.playerY = neighbor[0],neighbor[1]
@@ -223,12 +238,13 @@ class Solver:
         next_cell = parents[(self.playerX,self.playerY)]
         while not shortest_path_created:
             self.maze.matrix[next_cell[0]][next_cell[1]] = 2
-            self.maze.draw_maze(self.playerX,self.playerY)
             try:
                 next_cell = parents[(next_cell[0],next_cell[1])]
             except:
+                self.maze.draw_maze(self.playerX,self.playerY)
                 break
-        
+    
+    # idzie od góry do dołu i po koleji usuwa każdy ślepy zaułek działa tylko przy labiryntach bez paru przejść
     def dead_end_solver(self) -> None:
         free_paths = []
         cells_to_check = {}
@@ -240,9 +256,8 @@ class Solver:
 
         while path_created != True:
             for element in free_paths:
-                to_append = []
-                to_append.extend([(element[0],element[1]-1),(element[0]-1,element[1]),(element[0]+1,element[1]),(element[0],element[1]+1)])
-                cells_to_check[element] = to_append
+                cells_to_check[element] = [(element[0],element[1]-1),(element[0]-1,element[1]),(element[0]+1,element[1]),(element[0],element[1]+1)]
+
             to_delete = []
             for cell in cells_to_check:
                 walls = 0
@@ -263,11 +278,12 @@ class Solver:
                 self.maze.draw_maze(self.playerX,self.playerY)
                 self.maze.check_win(self.playerX,self.playerY)
 
-
             for i in to_delete:
                 free_paths.remove(i)
                 cells_to_check.pop(i)
         
+    # DFS tyle że zamiast cofać się do miejsc decyzji cofa się do punktu który ma jescze opcje miejsca w których był 2 razy
+    # zaznacza na czerwono nie są już częścią rozwiązania te w których był raz są częścią rozwiązania różowe to rozwiązanie
     def tremaux_solver(self) -> None:
         self.dont = True
         self.playerX,self.playerY = self.playerX,self.playerY-1
@@ -296,10 +312,8 @@ class Solver:
             if next_move == () and decision_made == False:
                 self.maze.matrix[self.playerX][self.playerY] = 4
                 self.playerX,self.playerY = stack[-1][0],stack[-1][1]
-                print("cofam")
                 del stack[-1]
                 decision_made = True
-            print(next_move)
 
             if next_move[2] == 1 and decision_made == False:
                 self.maze.matrix[self.playerX][self.playerY] = 5
@@ -314,6 +328,13 @@ class Solver:
             self.maze.draw_maze(self.playerX,self.playerY,True)
             neighbors = [(self.playerX,self.playerY-1),(self.playerX-1,self.playerY),(self.playerX+1,self.playerY),(self.playerX,self.playerY+1)]
 
+
+    # Dla każdego pola liczy szacowany dystans do wyjścia i dodaje dystans od wejścia i wybiera to z najmniejszym wynikiem 
+    # PriorityQueue to pole z najmniejszym wynikiem jest na starcie i jak się weźmnie pierwsze to usuwa ostatnie i daje je na przód
+    # Potem przesuwa je na poprawne miejsce. A jak dodaje się element to dodaje się go na koniec potem wraca po rodzicach do
+    # miejsca gdzie powinien być zamienia się po koleji miejscem z rodzicami. 
+    
+    # Dijkstra używa po prostu dystansu teraz i nie próbuje przewidywać przyszłości przez co rochodzi się bardziej w każdą stronę
     def a_star(self) -> None:
         class PriorityQueue:
             def __init__(self, startX, startY, exitX, exitY) -> None:
@@ -369,31 +390,18 @@ class Solver:
         self.maze.matrix[self.playerX][self.playerY] = 1
         self.playerY-=1
         queue = PriorityQueue(self.playerX,self.playerY,self.maze.exitX,self.maze.exitY)
-        neighbors = [(self.playerX,self.playerY-1),(self.playerX-1,self.playerY),(self.playerX+1,self.playerY),(self.playerX,self.playerY+1)]
-        for i in neighbors:
-            neighbor_cost = queue.path_cost[(self.playerX,self.playerY)] + 1
-            if self.maze.matrix[i[0]][i[1]] == 1:
-                    continue
-            if (i[0],i[1]) not in queue.path_cost or queue.path_cost[(i[0],i[1])] > neighbor_cost:
-                queue.add_element((i[0],i[1],(self.playerX,self.playerY)))
-                self.maze.matrix[i[0]][i[1]] = 4
-
         self.maze.matrix[self.playerX][self.playerY] = 3
-        self.maze.draw_maze(self.playerX,self.playerY,True)
-        visited = set()
+
         while len(queue.to_explore) != 0:
             self.maze.draw_maze(self.playerX,self.playerY,True)
             current_node = queue.to_explore[0]
             current_node = current_node[0]
+            
             if len(queue.to_explore) == 1:
                 queue.to_explore.pop()
             else:
                 queue.to_explore[0] = queue.to_explore.pop()
                 queue.bubble_down(0)
-            
-            if current_node in visited:
-                continue
-            visited.add(current_node)
 
             neighbors = [(current_node[0],current_node[1]-1),(current_node[0]-1,current_node[1]),(current_node[0]+1,current_node[1]),(current_node[0],current_node[1]+1)]
             if current_node == (self.maze.exitX,self.maze.exitY):
@@ -402,9 +410,11 @@ class Solver:
                 self.maze.check_win(self.playerX,self.playerY)
                 while next_cell in queue.path:
                     self.maze.matrix[next_cell[0]][next_cell[1]] = 2
-                    self.maze.draw_maze(self.playerX, self.playerY, True)
                     next_cell = queue.path[next_cell]
+
+                self.maze.draw_maze(self.playerX, self.playerY, True)
                 break
+            
             
             for i in neighbors:
                 neighbor_cost = queue.path_cost[current_node] + 1
@@ -424,9 +434,9 @@ solver = Solver(labirynt)
 # solver.right_hand_solver()
 # solver.dfs_solver()
 # solver.bfs_solver()
-solver.dead_end_solver()
+# solver.dead_end_solver()
 # solver.tremaux_solver()
-# solver.a_star()
+solver.a_star()
 
 while running:
     for event in pygame.event.get():
